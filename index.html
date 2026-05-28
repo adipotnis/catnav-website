@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CATNAV: Cached Vision-Language Traversability for Efficient Zero-Shot Robot Navigation</title>
+<meta name="description" content="CATNAV: a cost-aware traversability navigation framework that leverages multimodal LLMs for zero-shot, embodiment-aware costmap generation.">
+<style>
+  :root {
+    --accent: #3273dc;
+    --accent-dark: #2659b0;
+    --ink: #1a1a1a;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --bg: #ffffff;
+    --maxw: 900px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 18px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  header { text-align: center; padding: 64px 0 24px; }
+  h1.title {
+    font-size: 2.1rem;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  h1.title .acronym { color: var(--accent); }
+  .subtitle { font-size: 1.1rem; color: var(--muted); margin: 0 auto 22px; max-width: 760px; }
+  .authors { font-size: 1.05rem; margin: 0 0 4px; }
+  .authors a { color: var(--ink); border-bottom: 1px solid var(--line); }
+  .authors a:hover { color: var(--accent); text-decoration: none; border-bottom-color: var(--accent); }
+  .affil { color: var(--muted); font-size: 0.95rem; margin: 6px 0 2px; }
+  .corr { color: var(--muted); font-size: 0.9rem; margin: 0 0 4px; }
+
+  /* Buttons */
+  .links { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 26px 0 8px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--ink); color: #fff;
+    padding: 9px 20px; border-radius: 999px;
+    font-size: 0.95rem; font-weight: 600;
+    transition: background .15s ease, transform .05s ease;
+  }
+  .btn:hover { background: #000; text-decoration: none; }
+  .btn:active { transform: translateY(1px); }
+  .btn .ico { font-size: 1rem; line-height: 1; }
+  .btn.disabled { background: #cbd0d8; color: #fff; cursor: not-allowed; pointer-events: auto; }
+
+  /* Sections */
+  section { padding: 30px 0; border-top: 1px solid var(--line); }
+  section:first-of-type { border-top: none; }
+  h2 { font-size: 1.5rem; font-weight: 700; text-align: center; margin: 0 0 22px; }
+  .prose { max-width: 760px; margin: 0 auto; }
+  .prose p { margin: 0 0 16px; }
+
+  /* Figures */
+  figure { margin: 8px auto 0; text-align: center; }
+  figure img { max-width: 100%; height: auto; border-radius: 6px; }
+  figcaption { color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin-top: 12px; max-width: 760px; margin-left: auto; margin-right: auto; }
+  figcaption b { color: var(--ink); }
+  .hero { padding-top: 8px; }
+  .tweet-embed { display: flex; justify-content: center; min-height: 200px; }
+  .tweet-embed .twitter-tweet { margin-left: auto !important; margin-right: auto !important; }
+
+  /* Contribution list */
+  ol.contribs { max-width: 760px; margin: 0 auto; padding-left: 1.2em; }
+  ol.contribs li { margin-bottom: 14px; }
+
+  /* Stats */
+  .stats { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin: 4px auto 30px; max-width: 820px; }
+  .stat { flex: 1 1 180px; text-align: center; border: 1px solid var(--line); border-radius: 10px; padding: 18px 14px; }
+  .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+  .stat .lbl { font-size: 0.9rem; color: var(--muted); margin-top: 6px; }
+
+  .fig-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 820px; margin: 0 auto; }
+  .fig-grid figure { margin: 0; }
+  @media (max-width: 640px) { .fig-grid { grid-template-columns: 1fr; } }
+
+  /* BibTeX */
+  .bibtex-head { display: flex; align-items: center; justify-content: space-between; max-width: 760px; margin: 0 auto 10px; }
+  pre.bibtex {
+    max-width: 760px; margin: 0 auto;
+    background: #f6f8fa; border: 1px solid var(--line); border-radius: 8px;
+    padding: 18px 20px; overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem; line-height: 1.55; color: #24292f;
+  }
+  .copy-btn {
+    background: #fff; color: var(--ink); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 36px 0 56px; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1 class="title"><span class="acronym">CATNAV</span>: Cached Vision-Language Traversability<br>for Efficient Zero-Shot Robot Navigation</h1>
+
+    <p class="authors">
+      Aditya Potnis &middot; Francisco Affonso &middot; Shreya Gummadi &middot; Naveen Kumar Uppalapati &middot; Girish Chowdhary
+    </p>
+    <p class="affil">Field Robotics Engineering and Science Hub (FRESH), Illinois Autonomous Farm</p>
+    <p class="affil">University of Illinois at Urbana-Champaign</p>
+    <p class="corr">apotnis2 [at] illinois.edu &nbsp;&middot;&nbsp; girishc [at] illinois.edu</p>
+
+    <nav class="links">
+      <a class="btn" href="https://arxiv.org/pdf/2603.22800" target="_blank" rel="noopener"><span class="ico">📄</span> Paper</a>
+      <a class="btn" href="https://arxiv.org/abs/2603.22800" target="_blank" rel="noopener"><span class="ico">📐</span> arXiv</a>
+      <a class="btn" href="#"><span class="ico">💻</span> Code</a>
+      <a class="btn" href="https://x.com/aditya_potnis/status/2038397173620977962" target="_blank" rel="noopener"><span class="ico">▶</span> Video</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Teaser -->
+  <section class="hero">
+    <figure>
+      <div class="tweet-embed">
+        <blockquote class="twitter-tweet" data-media-max-width="560" data-align="center">
+          <p lang="zxx" dir="ltr"><a href="https://t.co/EGNSLpwXCx">pic.twitter.com/EGNSLpwXCx</a></p>
+          &mdash; Aditya Potnis (@aditya_potnis)
+          <a href="https://x.com/aditya_potnis/status/2038397173620977962?ref_src=twsrc%5Etfw">March 29, 2026</a>
+        </blockquote>
+      </div>
+      <figcaption><b>CATNAV</b> generates embodiment-aware traversability costmaps in a zero-shot manner using a multimodal LLM, reuses prior risk assessments through a visuosemantic cache, and selects the safest path via VLM-based trajectory reasoning.</figcaption>
+    </figure>
+  </section>
+
+  <!-- Abstract -->
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <div class="prose">
+      <p>Navigating unstructured environments requires assessing traversal risk relative to a robot's physical capabilities, a challenge that varies across embodiments. We present CATNAV, a cost-aware traversability navigation framework that leverages multimodal LLMs for zero-shot, embodiment-aware costmap generation without task-specific training. We introduce a visuosemantic caching mechanism that detects scene novelty and reuses prior risk assessments for semantically similar frames, reducing online VLM queries by 85.7%. Furthermore, we introduce a VLM-based trajectory selection module that evaluates proposals through visual reasoning to choose the safest path given behavioral constraints. We evaluate CATNAV on a quadruped robot across indoor and outdoor unstructured environments, comparing against state-of-the-art vision-language-action baselines. Across five navigation tasks, CATNAV achieves a higher average goal-reaching rate (68% vs. 58%) and 33% fewer behavioral constraint violations.</p>
+    </div>
+  </section>
+
+  <!-- Method -->
+  <section id="method">
+    <h2>Method</h2>
+    <div class="prose">
+      <p>CATNAV turns a single multimodal LLM into an embodiment-aware navigation stack with no task-specific training. The system makes three contributions:</p>
+      <ol class="contribs">
+        <li>A <b>zero-shot, embodiment-aware costmap generation framework</b> that uses VLM semantic-consequence reasoning to infer per-object traversal risk conditioned on the robot's morphology and locomotion modality.</li>
+        <li>A <b>visuosemantic caching mechanism</b> that uses CLIP embeddings and a vector store to detect semantically recurrent scenes, reusing prior risk assessments and significantly reducing online LLM query latency.</li>
+        <li>A <b>VLM-based trajectory reasoning module</b> that visually evaluates multi-proposal paths overlaid on the RGB image, selecting the safest trajectory given behavioral constraints and robot capabilities.</li>
+      </ol>
+      <p>At runtime, a novelty check (k-NN over CLIP embeddings) decides whether to query the LLM or reuse a cached risk assessment. Risk costs are segmented with CLIPSeg, projected into a 3D risk point cloud, and collapsed into a 2D occupancy grid. A TRRT planner proposes four candidate paths, which a second VLM query evaluates visually to choose the safest route under natural-language behavioral instructions.</p>
+    </div>
+    <figure>
+      <img src="static/images/diagg.drawio.png" alt="CATNAV system architecture">
+      <figcaption><b>System overview.</b> Novelty check &rarr; embodiment-aware costmap construction &rarr; multi-proposal TRRT planning &rarr; VLM trajectory reasoning.</figcaption>
+    </figure>
+  </section>
+
+  <!-- Results -->
+  <section id="results">
+    <h2>Results</h2>
+    <div class="stats">
+      <div class="stat"><div class="num">68%</div><div class="lbl">average goal-reaching rate &mdash; up from 58% for OmniVLA</div></div>
+      <div class="stat"><div class="num">&minus;33%</div><div class="lbl">fewer behavioral constraint violations</div></div>
+      <div class="stat"><div class="num">85.7%</div><div class="lbl">reduction in online VLM scene queries</div></div>
+      <div class="stat"><div class="num">86.5%</div><div class="lbl">visuosemantic cache utilization</div></div>
+    </div>
+    <div class="prose">
+      <p>We evaluate CATNAV on a Unitree Go1 quadruped (ZED 2i stereo camera, Jetson Orin, GNSS) across five indoor and outdoor navigation tasks, comparing against the OmniVLA vision-language-action baseline over 10 trials each.</p>
+    </div>
+
+    <figure>
+      <img src="static/images/stitch_v2_grid.png" alt="Qualitative costmap results">
+      <figcaption><b>Qualitative costmaps.</b> Across diverse indoor and outdoor scenes, CATNAV assigns high traversal cost to risky semantics (obstacles, crops, hazards) and low cost to walkable terrain. Costmaps recovered from cached risk assessments closely match those from fresh VLM queries, showing the cache preserves quality while cutting queries.</figcaption>
+    </figure>
+
+    <h3 style="text-align:center; font-size:1.1rem; margin:34px 0 16px; color:var(--muted); font-weight:600;">Trajectory comparisons across tasks (CATNAV vs. baseline)</h3>
+    <div class="fig-grid">
+      <figure><img src="static/images/collage_trajs2.drawio.png" alt="Footpath navigation tasks"><figcaption><b>Tasks 1&ndash;2: outdoor footpath.</b> CATNAV (green) keeps to the commanded side of the path and reaches the goal, while the baseline (blue) drifts off the walkable surface.</figcaption></figure>
+      <figure><img src="static/images/collage_trajs1.jpg" alt="Dynamic obstacle task"><figcaption><b>Task 3: dynamic human crossing.</b> CATNAV reasons about the crossing pedestrian and reroutes safely rather than driving through the person's path.</figcaption></figure>
+      <figure><img src="static/images/collage_trajs3.drawio.png" alt="Bench avoidance task"><figcaption><b>Task 4: bench avoidance.</b> Embodiment-aware costs mark the benches as non-traversable, so CATNAV plans a clear path around them to the goal.</figcaption></figure>
+      <figure><img src="static/images/collage_trajs4.drawio.png" alt="Indoor paper avoidance task"><figcaption><b>Task 5: indoor paper avoidance.</b> Given the behavioral instruction to avoid the paper on the floor, CATNAV selects the trajectory that respects the constraint.</figcaption></figure>
+    </div>
+
+    <figure style="margin-top:34px;">
+      <img src="static/images/freq_gaussian_colored.png" alt="VLM query frequency under caching">
+      <figcaption><b>Caching efficiency.</b> VLM query frequency across caching configurations &mdash; the visuosemantic cache cuts online queries by 85.7%.</figcaption>
+    </figure>
+  </section>
+
+  <!-- BibTeX -->
+  <section id="bibtex">
+    <h2>BibTeX</h2>
+    <div class="bibtex-head">
+      <span style="color:var(--muted); font-size:0.9rem;">arXiv preprint</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyBibtex()">Copy</button>
+    </div>
+<pre class="bibtex" id="bibtex">@misc{potnis2026catnavcachedvisionlanguagetraversability,
+      title={CATNAV: Cached Vision-Language Traversability for Efficient Zero-Shot Robot Navigation},
+      author={Aditya Potnis and Francisco Affonso and Shreya Gummadi and Naveen Kumar Uppalapati and Girish Chowdhary},
+      year={2026},
+      eprint={2603.22800},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2603.22800},
+}</pre>
+  </section>
+
+</main>
+
+<footer>
+  <p>CATNAV &middot; University of Illinois at Urbana-Champaign (FRESH).<br>
+  Project page &mdash; minimal academic template.</p>
+</footer>
+
+<script>
+  function copyBibtex() {
+    var text = document.getElementById('bibtex').innerText;
+    var btn = document.getElementById('copyBtn');
+    navigator.clipboard.writeText(text).then(function () {
+      var prev = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = prev; }, 1500);
+    });
+  }
+</script>
+
+<script async src="https://platform.x.com/widgets.js" charset="utf-8"></script>
+
+</body>
+</html>
